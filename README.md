@@ -1,6 +1,10 @@
 # db_manager.sh
 
-This is a utility to move AdaptiveCity sensor metadata and sensor_type metadata between JSON files and PostgreSQL.
+
+## Overview
+
+This is a utility to move AdaptiveCity sensor, sensor_type and BIM data between JSON files and PostgreSQL.
+The corresponding table names are `sensors`, `sensor_types` and `bim`, in the database `acp_prod`.
 
 Our strategy is, in general, to store our data as JSON objects. We could easily use an object store like MongoDB but
 for greater flexibility we are using PostgreSQL tables with a `jsonb` column. Note that the object data is stored
@@ -11,7 +15,12 @@ In general the data table is assumed to have the structure:
 ```
 <identifier>, acp_ts, acp_ts_end, <json info>
 ```
-the `sensors` table is:
+where the `<identifier>`, `acp_ts` and `acp_ts_end` properties will *also* appear in the `<json_info>`. API's normally only
+need to deal with the `<json_info>` data (i.e. we are replicating an object store using JSON as the object format). The
+*database columns* `acp_ts` and `acp_ts_end` are native PostgreSQL timestamps, while the corresponding property values in
+the JSON object will be ACP standard timestamp strings as used throughout the platform e.g. "1606601561.5036056".
+
+E.g. the `sensors` table is:
 ```
 acp_id, acp_ts, acp_ts_end, sensor_info
 ```
@@ -34,8 +43,6 @@ command can be used and the result will be a json *list*.
 
 ## Installation
 
-(will be added to `acp_data_strategy` readme)
-
 ```
 sudo apt install libpg-dev
 ```
@@ -43,26 +50,18 @@ sudo apt install libpg-dev
 As user `acp_prod` (database will default to `acp_prod`):
 
 ```
-psql
-
-CREATE TABLE public.sensors (
-    acp_id character varying NOT NULL,
-    acp_ts TIMESTAMP,
-    acp_ts_end TIMESTAMP,
-    sensor_info jsonb
-);
-
-```
-
-```
-cd ~/acp_data_strategy
+git clone https://github.com/AdaptiveCity/acp_db_manager
+cd ~/acp_db_manager
+python3 -m venv venv
 source venv/bin/activate
-python3 -m pip install psycopg2
+python3 -m pip install pip --upgrade
+python3 -m pip install wheel
+python3 -m pip install -r requirements.txt
 ```
 
 ## `secrets/settings.json`
 
-You will need to collect the `~acp_prod/acp_data_strategy/db_manager/secrets/` directory from another server.
+You will need to collect the `~acp_prod/acp_db_manager/secrets/` directory from another server.
 
 The `settings.json` content currently is as below, note as the `acp_prod` user you do not need the `PGPASSWORD`:
 ```
@@ -83,6 +82,11 @@ The `settings.json` content currently is as below, note as the `acp_prod` user y
             "table_name": "sensor_types",
             "id":         "acp_type_id",
             "json_info":  "type_info"
+        },
+        "bim": {
+            "table_name": "bim",
+            "id":         "crate_id",
+            "json_info":  "crate_info"
         }
     }
 
