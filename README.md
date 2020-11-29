@@ -167,7 +167,7 @@ sensor / sensor_type. I.e. for each sensor multiple records may be returned, wit
 
 Consequently the json returned is a *json list*, not a json object with a property-per-sensor/sensor_type.
 
-### `db_manager.sh --dbwrite <tablename> [--jsonfile <filename>]
+### `db_manager.sh --dbwrite <tablename> --jsonfile <filename>`
 
 Kind-of the inverse of `--dbread`.
 
@@ -177,51 +177,15 @@ should result in `sensors.json` and `sensors2.json` having the same content.
 
 ### `db_manager.sh --dbmerge<tablename> [--jsonfile <filename>]`
 
+E.g. after downloading the TTN settings for an application using `acp_ttn_manager` we can merge those settings into
+the ACP `sensors` table:
+```
+./db_manager.sh --dbmerge sensors --jsonfile ../acp_ttn_manager/secrets/cambridge-sensor-network2_2020-11-29.json
+```
+
 This is similar to a `--dbwrite` **except** each the data from the `--jsonfile` will be **merged** with the corresponding object
 in the database. This is useful if the new json contains a new property for existing sensors, e.g. `ttn_settings` so these can be
 combined with exising properties such as `acp_location` which may alrady be recorded for the sensor.
 
 Note that every 'base level` property in the `--jsonfile` will overwrite the existing property for the same object in the
 database, i.e. this is not a recursive 'deep' merge.
-
-# Accumulated background stuff
-
-email ijl20 to Rohit 2020-10-14:
-
-I'm in the process of doing something similar between the JSON files and postgresql to complete the acp_data_strategy
-work using the data from postgresql rather than the files (as you had it in the prior iteration of acp_data_strategy).
-I.e. see acp_data_strategy/db_testing and you'll see the work in progress.
-
-I.e. the 'json' file format of our sensor and sensor_type data can act as a means of exchange of data between the database and TTN.
-
-At the moment we have
-
-acp_data_strategy/secrets/sensors.json
-acp_data_strategy/secrets/sensor_types.json
-
-both of which are JSON 'dictionaries' keyed on acp_id and acp_type_id respectively.
-
-I am writing python/bash scripts that will import/export data from the tables from/to JSON files. I'll need to support
-multiple methods for file <-> database, but in principle these are similar to file <-> ttn, e.g. I'll have something like:
-```
-sensors_write.py <sensors json file name>:
-
-              sensors json file -> WRITE each sensor object to sensors db table,
-                                             overwrite if already there.
-
-sensors_merge.py <sensors json file name>:
-              sensors json file -> MERGE each sensor object into db table,
-                                              keep existing properties if they're not overwritten
-
-sensors_read <sensors json file name>:
-              read all sensors from DB & export to (optional) JSON file / stdout
-
-sensor_read <acp_id> <sensors json file name>:
-             read a single sensor from DB, and write it into (optional, existing) sensors json file
-             If the <sensor json file> isn't given, then write to stdout.
-
-sensor_delete <acp_id>:
-             deletes that sensor from the database
-```
-So pretty basic, but should form a useful set of scripts for the database (me) and TTN (you) with JSON files in
-the middle, and in due course we'll add the capability of going straight database <-> ttn but the file scripts will still be useful.
