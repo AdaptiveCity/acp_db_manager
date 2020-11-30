@@ -99,6 +99,16 @@ Test the install with:
 ```
 ./db_manager.sh --status
 ```
+The table names are as in the `secrets/settings.json` file, and we have not created them, hence output:
+```
+--status--
+Querying table sensors :
+    Table sensors not found.
+Querying table sensor_types :
+    Table sensor_types not found.
+Querying table bim :
+    Table bim not found.
+```
 
 ## Creating the PostgreSQL tables
 
@@ -113,31 +123,43 @@ the definitive information.
 As user `acp_prod`:
 
 ```
+cd ~/acp_db_manager
 psql
 ```
 
-At `psql` prompt:
+At the `psql` prompt:
 ```
 CREATE TABLE sensors (
-acp_id character varying NOT NULL.
+acp_id character varying NOT NULL,
 acp_ts TIMESTAMP,
 acp_ts_end TIMESTAMP,
 sensor_info jsonb
 );
 
 CREATE TABLE sensor_types (
-acp_type_id character varying NOT NULL.
+acp_type_id character varying NOT NULL,
 acp_ts TIMESTAMP,
 acp_ts_end TIMESTAMP,
 type_info jsonb
 );
 
 CREATE TABLE bim (
-crate_id character varying NOT NULL.
+crate_id character varying NOT NULL,
 acp_ts TIMESTAMP,
 acp_ts_end TIMESTAMP,
 crate_info jsonb
 );
+```
+
+At this point `$ ./db_manager.sh --status` will output:
+```
+--status--
+Querying table sensors :
+    zero rows found
+Querying table sensor_types :
+    zero rows found
+Querying table bim :
+    zero rows found
 ```
 
 ## Command line usage of `db_manager.sh`
@@ -175,6 +197,50 @@ optional arguments:
   --dbmerge <tablename>
                         Read records from jsonfile (or stdin if no jsonfile) and SHALLOW MERGE base properties into
                         matching PostgrSQL records
+```
+
+## Initializing the tables
+
+The method is to use `acp_db_manager` to extract the data as JSON files from another server and then import that into your
+server. `acp_ttn_manager` can be used to collect The Things Network device registrations and merge that information into
+the `sensors` table. E.g.:
+```
+./db_manager.sh --dbwrite sensors --jsonfile secrets/sensors_cdbb_2020-11-29.json
+./db_manager.sh --dbwrite sensor_types --jsonfile secrets/sensor_types_cdbb_2020-11-29.json
+./db_manager.sh --dbwrite bim --jsonfile secrets/BIM_cdbb_2020-11-29.json
+./db_manager.sh --status
+```
+Output:
+```
+--status--
+Querying table sensors :
+    31 rows found
+    31 unique acp_id identifers in table
+    most recent update was: 2020-11-18 17:05:43.123000
+    newest entry: elsys-ems-0503e4
+Querying table sensor_types :
+    9 rows found
+    9 unique acp_type_id identifers in table
+    most recent update was: 2020-11-13 13:17:16.123000
+    newest entry: monnit-Temperature
+Querying table bim :
+    418 rows found
+    418 unique crate_id identifers in table
+    most recent update was: 2020-11-19 23:20:21.841919
+    newest entry: HW1
+```
+
+Then collected the TTN device registration data using `acp_ttn_manager` and *merged* that into the `sensors`
+table with:
+```
+./db_manager.sh --dbmerge sensors --jsonfile ../acp_ttn_manager/secrets/cambridge-sensor-network2_2020-11-29.json
+./db_manager.sh --status sensors
+--status--
+Querying table sensors :
+    64 rows found
+    43 unique acp_id identifers in table
+    most recent update was: 2020-11-29 12:23:12.703506
+    newest entry: rad-wd-f7c5c9
 ```
 
 ## Examples

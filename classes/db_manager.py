@@ -53,7 +53,7 @@ class DBManager(object):
             query = f'SELECT COUNT(*) FROM {table_name} {where}'
             count = db_conn.dbread(query,None)[0][0]
         except UndefinedTable:
-            print(f'    Table {table_name} not found.', file=sys.stderr, flush=True)
+            print(f'    Table {table_name} not found.')
             return
 
         if count == 0:
