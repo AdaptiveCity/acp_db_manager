@@ -48,8 +48,13 @@ class DBManager(object):
         # Build/execute query for record count
         print(f'Querying table {table_name} {where}:')
         db_conn = DBConn(self.settings)
-        query = f'SELECT COUNT(*) FROM {table_name} {where}'
-        count = db_conn.dbread(query,None)[0][0]
+        try:
+            query = f'SELECT COUNT(*) FROM {table_name} {where}'
+            count = db_conn.dbread(query,None)[0][0]
+        except psycopg2.errors.UndefinedTable:
+            print(f'    Table {table_name} not found.', file=sys.stderr, flush=True)
+            return
+
         if count == 0:
             print("    zero rows found")
         else:

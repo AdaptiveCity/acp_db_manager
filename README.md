@@ -44,7 +44,7 @@ command can be used and the result will be a json *list*.
 ## Installation
 
 ```
-sudo apt install libpg-dev
+sudo apt install libpy-dev
 ```
 
 As user `acp_prod` (database will default to `acp_prod`):
@@ -94,6 +94,11 @@ The `settings.json` content currently is as below, note as the `acp_prod` user y
 ```
 Note the `TABLES` structure allows custom names to be used for the identifier and JSON columns, and the `<tablename>`
 given in the `db_manager.sh` commands is actually a key into the `TABLES` dictionary.
+
+Test the install with:
+```
+./db_manager.sh --status
+```
 
 ## Creating the PostgreSQL tables
 
