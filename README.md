@@ -44,7 +44,7 @@ command can be used and the result will be a json *list*.
 ## Installation
 
 ```
-sudo apt install libpy-dev
+sudo apt install libpq-dev
 ```
 
 As user `acp_prod` (database will default to `acp_prod`):
