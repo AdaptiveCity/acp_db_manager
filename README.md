@@ -95,6 +95,46 @@ The `settings.json` content currently is as below, note as the `acp_prod` user y
 Note the `TABLES` structure allows custom names to be used for the identifier and JSON columns, and the `<tablename>`
 given in the `db_manager.sh` commands is actually a key into the `TABLES` dictionary.
 
+## Creating the PostgreSQL tables
+
+These tables are effectively using PostgreSQL as a JSON object store, and we are 'promoting' timestamps out of the JSON
+into native PostgreSQL TIMESTAMP values to simplify some queries. The intention is that the definitive data always remains the
+JSON, and this is the information returned in API queries. For example, in future we may use PostGIS and promote lat/lng
+coordinates from the underlying JSON objects, but the point of this is to speed up spatial queries which could equally have
+been implemented (more slowly) using the properties within the JSON data. Currently we are not creating PostgreSQL indices - we
+can do this when we have queries that would benefit from those, still without altering the strategy of the JSON object representing
+the definitive information.
+
+As user `acp_prod`:
+
+```
+psql
+```
+
+At `psql` prompt:
+```
+CREATE TABLE sensors (
+acp_id character varying NOT NULL.
+acp_ts TIMESTAMP,
+acp_ts_end TIMESTAMP,
+sensor_info jsonb
+);
+
+CREATE TABLE sensor_types (
+acp_type_id character varying NOT NULL.
+acp_ts TIMESTAMP,
+acp_ts_end TIMESTAMP,
+type_info jsonb
+);
+
+CREATE TABLE bim (
+crate_id character varying NOT NULL.
+acp_ts TIMESTAMP,
+acp_ts_end TIMESTAMP,
+crate_info jsonb
+);
+```
+
 ## Command line usage of `db_manager.sh`
 
 ```
