@@ -8,6 +8,7 @@ import sys
 from datetime import datetime
 import copy # used for deepcopy
 from classes.dbconn import DBConn
+from psycopg2.errors import UndefinedTable
 
 DEBUG = True
 
@@ -51,7 +52,7 @@ class DBManager(object):
         try:
             query = f'SELECT COUNT(*) FROM {table_name} {where}'
             count = db_conn.dbread(query,None)[0][0]
-        except psycopg2.errors.UndefinedTable:
+        except UndefinedTable:
             print(f'    Table {table_name} not found.', file=sys.stderr, flush=True)
             return
 
