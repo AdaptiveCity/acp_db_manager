@@ -97,6 +97,15 @@ class DBManager(object):
         table_name = db_table["table_name"]
         id_name = db_table["id"]
         json_name = db_table["json_info"]
+        
+        if id_name not in json_info_obj:
+            print(f'Bad input, {id_name} not in json_info:\n{json_info_obj}', file=sys.stderr)
+            return
+
+        if json_info_obj[id_name] != id:
+            print(f'Bad input, {id_name} {id} does not match in json_info:\n{json_info_obj}', file=sys.stderr)
+            return
+
         # Create a datetime version of the "acp_ts" record timestamp
         if "acp_ts" in json_info_obj:
             update_acp_ts = datetime.fromtimestamp(float(json_info_obj["acp_ts"]))
